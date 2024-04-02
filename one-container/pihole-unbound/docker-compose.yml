@@ -1,0 +1,28 @@
+services:
+  pihole:
+    container_name: pihole-unbound-self
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    hostname: ${HOSTNAME}
+    domainname: ${DOMAIN_NAME}
+    ports:
+      - 443:443/tcp
+      - 53:53/tcp
+      - 53:53/udp
+      - ${PIHOLE_WEBPORT:-80}:80/tcp
+    environment:
+#      - FTLCONF_LOCAL_IPV4=${FTLCONF_LOCAL_IPV4}
+      - TZ=${TZ:-UTC}
+      - WEBPASSWORD=${WEBPASSWORD}
+#      - REV_SERVER=${REV_SERVER:-false}
+#      - REV_SERVER_TARGET=${REV_SERVER_TARGET}
+#      - REV_SERVER_DOMAIN=${REV_SERVER_DOMAIN}
+#      - REV_SERVER_CIDR=${REV_SERVER_CIDR}
+      - PIHOLE_DNS_=127.0.0.1#5335
+      - DNSSEC="true"
+      - DNSMASQ_LISTENING=single
+    volumes:
+      - /etc/pihole/config:/etc/pihole:rw
+      - /etc/pihole/dnsmasq.d:/etc/dnsmasq.d:rw
+    restart: unless-stopped
