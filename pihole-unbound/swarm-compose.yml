@@ -1,0 +1,44 @@
+version: '3.4'
+
+services:
+  pihole-unbound:
+    image: kgshank/pihole-unbound
+    hostname: "{{.Node.Hostname}}-{{.Service.Name}}"
+    domainname: ${DOMAIN_NAME}
+    deploy:
+      mode: global
+    ports:
+      - target: 53
+        published: 53
+        protocol: tcp
+        mode: host
+      - target: 53
+        published: 53
+        protocol: udp
+        mode: host
+      - target: ${PIHOLE_WEBPORT:-80}
+        published: 80
+        protocol: tcp
+        mode: host
+    environment:
+      #- FTLCONF_LOCAL_IPV4='{{ .Status.Addr  }}'
+      - TZ=${TZ:-UTC}
+      - REV_SERVER=${REV_SERVER:-false}
+      - REV_SERVER_TARGET=${REV_SERVER_TARGET}
+      - REV_SERVER_DOMAIN=${REV_SERVER_DOMAIN}
+      - REV_SERVER_CIDR=${REV_SERVER_CIDR}
+      - PIHOLE_DNS_=127.0.0.1#5335
+      - DNSSEC="true"
+      - DNSMASQ_LISTENING=all
+      - HOSTNAME={{.Node.Hostname}}-pihole
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - WEBPASSWORD_FILE=${WEBPASSWORD_FILE}
+    secrets:
+      - pihole_pass
+    volumes:
+      - /etc/pihole/config:/etc/pihole:rw
+      - /etc/pihole/dnsmasq.d:/etc/dnsmasq.d:rw
+    restart: unless-stopped
+secrets:
+  pihole_pass:
+    external: true

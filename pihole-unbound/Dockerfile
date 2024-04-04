@@ -1,6 +1,6 @@
 ARG PIHOLE_VERSION
 FROM pihole/pihole:${PIHOLE_VERSION:-latest}
-RUN apt update && apt install -y unbound
+RUN apt update && apt upgrade -y && apt install -y unbound
 
 COPY unbound-pihole.conf /etc/unbound/unbound.conf.d/pi-hole.conf
 COPY 99-edns.conf /etc/dnsmasq.d/99-edns.conf
