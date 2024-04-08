@@ -1,0 +1,17 @@
+version: "3"
+services:
+  adguardhome-sync:
+    image: kgshank/adguard-sync
+    container_name: adguardhome-sync
+    #build:
+    #  context: ./
+    #  dockerfile: Dockerfile
+    command: run --config /config/adguardhome-sync.yaml
+    volumes:
+      - ${CONFIG_LOCATION}/adguard-sync.yaml:/config/adguardhome-sync.yaml
+    ports:
+      - 8080:8080
+    environment:
+      - TZ=${TZ:-UTC}
+      - CONFIG_LOCATION=${CONFIG_LOCATION}
+    restart: unless-stopped
