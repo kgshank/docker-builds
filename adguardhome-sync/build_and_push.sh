@@ -4,6 +4,6 @@
 
 
 VERSION=`cat VERSION`
-docker buildx build --build-arg VERSION=$VERSION --platform linux/arm/v7,linux/arm64/v8,linux/amd64 -t kgshank/adguard-sync:$VERSION --push .
+cp -R ../certs . && docker buildx build  --platform linux/arm64/v8,linux/amd64 -t kgshank/adguard-sync:$VERSION --push . && rm -rf certs
 
 

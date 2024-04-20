@@ -1,0 +1,39 @@
+version: '3.2'
+
+services:
+  portainer:
+    container_name: portainer_ce
+    image: portainer/portainer-ce
+    ports:
+      - "9443:9443"
+      - "8000:8000"
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONFIG_LOCATION}:/certs
+    command:
+      - --sslcert
+      - /certs/${CERT_NAME}.crt
+      - --sslkey
+      - /certs/${CERT_NAME}.key
+    environment:
+      - TZ=${TZ:-UTC}
+      - CONFIG_LOCATION=${CONFIG_LOCATION}
+    
+  
+  portainer_agent:
+    container_name: portainer_agent
+    image: portainer/agent
+    ports:
+      - "9001:9001"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: /var/lib/docker/volumes
+        target: /var/lib/docker/volumes
+    restart: unless-stopped
+
+volumes:
+  portainer_data:

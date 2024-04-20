@@ -1,0 +1,28 @@
+version: '3.4'
+
+services:
+  adguard:
+    image: kgshank/adguard-unbound
+    hostname: ${HOSTNAMEAD}
+    container_name: adguard
+    #hostname: "{{.Service.Name}}"
+    #domainname: ${DOMAIN_NAME}
+    #networks:
+    #  pihole_network:
+    #    ipv4_address: 10.0.0.10
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - ${ADGUARD_WEBPORT:-80}:80/tcp
+      - 443:443/tcp
+      - 443:443/udp
+      - 3000:3000/tcp
+    environment:
+      - TZ=${TZ:-UTC}
+      - HOSTNAME=${HOST}-adguard
+    volumes:
+      - /etc/adguardhome/work:/opt/adguardhome/work:rw
+      - /etc/adguardhome/conf:/opt/adguardhome/conf:rw
+      #- /etc/adguardhome/resolv.conf:/etc/resolv.conf
+    restart: unless-stopped
+

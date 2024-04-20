@@ -1,0 +1,15 @@
+#!/command/with-contenv bash
+
+s6-echo "Starting Adguard"
+
+NAME="adguard"
+DESC="Adguard DNS server"
+ADGUARD_DAEMON="/opt/adguardhome/AdGuardHome"
+PIDFILE="/run/adguard.pid"
+
+test -x $ADGUARD_DAEMON || exit 0
+
+ADGUARD_ARGS=${ADGUARD_ARGS:-"--no-check-update -c /opt/adguardhome/conf/AdGuardHome.yaml -w /opt/adguardhome/work"}
+
+$ADGUARD_DAEMON $ADGUARD_ARGS
+

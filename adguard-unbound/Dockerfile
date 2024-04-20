@@ -1,22 +1,51 @@
-FROM adguard/adguardhome:latest
+FROM busybox as builder
+ARG TARGETARCH
+ARG BUILDONLY_TOOLS='tar xz-utils'
+#RUN apt update && apt upgrade -y && apt install -y unbound ${BUILDONLY_TOOLS}
 
-RUN apk --no-cache add wget unbound
+ARG S6_OVERLAY_VERSION=3.1.6.2
+# syntax=docker/dockerfile-upstream:master
+WORKDIR /s6
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+RUN tar -C /s6 -Jxpf /tmp/s6-overlay-noarch.tar.xz
+ENV S6_ARCH=${TARGETARCH//amd64/x86_64}
+ENV S6_ARCH=${S6_ARCH//arm64/aarch64}
+ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz /tmp
+RUN tar -C /s6 -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz
 
-COPY unbound-local.conf /etc/unbound/unbound.conf.d/unbound-local.conf
+FROM adguard/adguardhome:latest as source 
+# application image
 
-COPY entrypoint.sh /usr/local/bin/
+FROM debian:bullseye-slim
+RUN apt update && apt upgrade -y && apt install -y unbound ca-certificates
 
-RUN chmod u+x,g+x /usr/local/bin/entrypoint.sh\
-  && ln -s /usr/local/bin/entrypoint.sh /
+COPY certs/myCA.pem /usr/local/share/ca-certificates/myCA.crt
 
-RUN wget -S https://www.internic.net/domain/named.cache -O /etc/unbound/root.hints
+RUN update-ca-certificates
 
-ENTRYPOINT ["entrypoint.sh"]
+COPY --from=builder /s6  /
 
-WORKDIR /opt/adguardhome/work
+COPY unbound-pihole.conf /etc/unbound/unbound.conf.d/pi-hole.conf
 
-CMD ["/opt/adguardhome/AdGuardHome", \
-	"--no-check-update", \
-	"-c", "/opt/adguardhome/conf/AdGuardHome.yaml", \
-	"-w", "/opt/adguardhome/work" \
-]
+COPY 99-edns.conf /etc/dnsmasq.d/99-edns.conf
+
+RUN mkdir -p /etc/services.d/unbound
+
+COPY unbound-run /etc/services.d/unbound/run
+
+RUN mkdir -p /opt/adguardhome/work
+
+COPY --from=source --chown=root:root /opt/adguardhome/AdGuardHome /opt/adguardhome/AdGuardHome
+
+RUN mkdir -p /etc/services.d/adguard
+
+COPY adguard-run /etc/services.d/adguard/run
+
+EXPOSE 53/tcp 53/udp 67/udp 68/udp 80/tcp 443/tcp 443/udp 853/tcp\
+	853/udp 3000/tcp 3000/udp 5443/tcp 5443/udp 6060/tcp 5335/tcp 5335/udp
+
+ENV ADGUARD_ARGS="--no-check-update -c /opt/adguardhome/conf/AdGuardHome.yaml -w /opt/adguardhome/work"
+
+ENTRYPOINT ["/init"]
+
+

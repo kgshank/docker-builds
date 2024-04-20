@@ -1,0 +1,32 @@
+version: '3'
+services:
+  homarr:
+    container_name: homarr
+    image: ghcr.io/ajnart/homarr:latest
+    restart: unless-stopped
+    #network_mode: host
+    #networks: 
+    #  - homarr_net
+        #ipv4_address: 10.0.0.10
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Optional, only if you want docker integration
+      - ${HOMARR_CONFIG_LOCATION}/configs:/app/data/configs
+      - ${HOMARR_CONFIG_LOCATION}/icons:/app/public/icons
+      - ${HOMARR_CONFIG_LOCATION}/data:/data
+    environment:
+      - TZ=${TZ:-UTC}      
+    ports:
+      - '7575:7575'
+#networks:
+# homarr_net:
+#    driver: bridge
+    #driver: macvlan
+    #driver_opts:
+      #parent: end0.10
+      #parent: eno1.10
+      #macvlan_mode: bridge
+    #ipam:
+    #  config:
+    #    - subnet: 192.168.0.0/24
+    #      gateway: 192.168.0.1
+    #      ip_range: 192.168.0.192/30 # 192.168.1.5 and 192.168.1.6

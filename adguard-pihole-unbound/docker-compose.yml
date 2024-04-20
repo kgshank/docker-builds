@@ -1,0 +1,68 @@
+version: '3.4'
+
+services:
+  adguard:
+    image: kgshank/adguard-unbound
+    hostname: ${HOSTNAMEAD}
+    container_name: adguard
+    #hostname: "{{.Service.Name}}"
+    #domainname: ${DOMAIN_NAME}
+    networks:
+      pihole_network:
+        ipv4_address: 10.0.0.10
+    ports:
+      - 53:53/tcp
+      - 53:53/udp
+      - ${ADGUARD_WEBPORT:-80}:80/tcp
+      - 443:443/tcp
+      - 443:443/udp
+      - 3000:3000/tcp
+    environment:
+      - TZ=${TZ:-UTC}
+      - HOSTNAME=${HOST}-adguard
+    volumes:
+      - /etc/adguardhome/work:/opt/adguardhome/work:rw
+      - /etc/adguardhome/conf:/opt/adguardhome/conf:rw
+      #- /etc/adguardhome/resolv.conf:/etc/resolv.conf
+    restart: unless-stopped
+  pihole:
+    container_name: pihole
+    image: kgshank/pihole-unbound:latest
+    hostname: ${HOSTNAMEPI}
+    #hostname: "{{.Service.Name}}"
+    #domainname: ${DOMAIN_NAME}
+    ports:
+#      - 54:53/tcp
+#      - 54:53/udp
+      - ${PIHOLE_WEBPORT:-80}:80/tcp
+    networks:
+      pihole_network:
+        ipv4_address: 10.0.0.8
+    environment:
+      - FTLCONF_LOCAL_IPV4=${FTLCONF_LOCAL_IPV4}
+      - TZ=${TZ:-UTC}
+      - REV_SERVER=${REV_SERVER:-false}
+      - REV_SERVER_TARGET=${REV_SERVER_TARGET}
+      - REV_SERVER_DOMAIN=${REV_SERVER_DOMAIN}
+      - REV_SERVER_CIDR=${REV_SERVER_CIDR}
+      - PIHOLE_DNS_=127.0.0.1#5335
+      - DNSSEC=true
+      - DNSMASQ_LISTENING=${DNSMASQ_LISTENING:-all}
+      - HOSTNAME=${HOST}-pihole
+      - DOMAIN_NAME=${DOMAIN_NAME}
+      - WEBPASSWORD=${WEBPASSWORD}
+    volumes:
+      - /etc/pihole/config:/etc/pihole:rw
+      - /etc/pihole/dnsmasq.d:/etc/dnsmasq.d:rw
+      #- /etc/pihole/resolv.conf:/etc/resolv.conf
+    restart: unless-stopped
+networks:
+  pihole_network:
+    #driver: default
+    ipam:
+      #driver: default
+      config:
+        - subnet: 10.0.0.0/24
+          #ip_range: 10.0.5.0/24
+          #gateway: 10.0.0.1
+
