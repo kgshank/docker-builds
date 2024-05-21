@@ -1,9 +1,8 @@
 version: '3.2'
-
 services:
   portainer:
-    container_name: portainer_ce
-    image: portainer/portainer-ce
+    container_name: portainer
+    image: portainer/portainer-ce:latest
     ports:
       - "9443:9443"
       - "8000:8000"
@@ -19,21 +18,21 @@ services:
     environment:
       - TZ=${TZ:-UTC}
       - CONFIG_LOCATION=${CONFIG_LOCATION}
-    
-  
-  portainer_agent:
-    container_name: portainer_agent
-    image: portainer/agent
-    ports:
-      - "9001:9001"
-    volumes:
-      - type: bind
-        source: /var/run/docker.sock
-        target: /var/run/docker.sock
-      - type: bind
-        source: /var/lib/docker/volumes
-        target: /var/lib/docker/volumes
     restart: unless-stopped
+
+  #portainer_agent:
+  #  container_name: portainer_agent
+  #  image: portainer/agent
+  #  ports:
+  #    - "9001:9001"
+  #  volumes:
+  #    - type: bind
+  #      source: /var/run/docker.sock
+  #      target: /var/run/docker.sock
+  #    - type: bind
+  #      source: /var/lib/docker/volumes
+  #      target: /var/lib/docker/volumes
+  #  restart: unless-stopped
 
 volumes:
   portainer_data:

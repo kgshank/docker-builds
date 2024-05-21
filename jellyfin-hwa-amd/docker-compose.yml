@@ -1,0 +1,32 @@
+version: '3'
+services:
+  jellyfin:
+    image: kgshank/jellyfin-hwa-amd:${VERSION}
+    container_name: jellyfin-hwa-${VERSION}
+    hostname: gopi-um690-jellyfin-${VERSION}
+    user: 1000:1000
+    group_add:
+      - "989"
+      - "985"
+    #network_mode: 'host'
+    ports:
+      - 8096:8096
+      - 8920:8920
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - /mnt/shares:/mnt/shares
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+      - /dev/kfd:/dev/kfd # Remove this device if you don't use the OpenCL tone-mapping
+    environment:
+      - ROC_ENABLE_PRE_VEGA=1
+      - VERSION=${VERSION:-latest}
+    restart: unless-stopped
+volumes:
+  jellyfin-config:
+    name: jellyfin-config-${VERSION}
+#     external: true
+  jellyfin-cache:
+    name: jellyfin-cache-${VERSION}
+#     external: true
